@@ -1,0 +1,67 @@
+﻿&命令把作业放到后台执行。
+命令格式：command &  
+【1】  代表的是后台作业号
+1094  代表触发的进程ID
+
+
+
+nohup
+退出nohup模式之后，停止程序：
+ps -ef|grep "bin/kafka-server-start.sh config/server.propertie" #（查找运行该命令的进程）
+kill -9 your_command_pid #(根据进程号关闭程序)
+
+查看运行的后台进程
+
+（1）jobs -l
+jobs命令只看当前终端生效的，关闭终端后，在另一个终端jobs已经无法看到后台跑得程序了，此时利用ps（进程查看命令）
+
+
+kafka需要使用Zookeeper,首先需要启动Zookeeper服务,上面的操作就已经启动了Zookeeper服务
+
+如果没有的话,可以使用kafka自带的脚本启动一个简单的单一节点Zookeeper实例
+nohup bin/zookeeper-server-start.sh config/zookeeper.properties & 30409
+启动 Kafka服务
+nohup bin/kafka-server-start.sh config/server.properties & 30685
+
+停止 Kafka服务
+bin/kafka-server-stop.sh config/server.properties
+
+
+停止
+按如下顺序 停止 
+停止Kafka server
+bin/kafka-server-stop.sh
+停止Zookeeper server
+bin/zookeeper-server-stop.sh
+
+创建 并发送message
+bin/kafka-console-producer.sh --broker-list localhost:9092 --topic test
+消费
+bin/kafka-console-consumer.sh --zookeeper localhost:2181 --topic test --from-beginning
+
+
+创建一个拥有3个副本,1个分区的topic
+bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 3 --partitions 1 --topic test-new
+
+删除
+bin/kafka-topics.sh --delete --zookeeper localhost:2181 --topic test
+
+统计
+bin/kafka-topics.sh --describe --zookeeper localhost:2181 --topic test
+Topic:test      PartitionCount:1        ReplicationFactor:1     Configs:
+        Topic: test     Partition: 0    Leader: 0       Replicas: 0     Isr: 0 
+第一行是对所有分区的一个描述，然后每个分区都会对应一行，因为我们只有一个分区所以下面就只加了一行。 
+leader：负责处理消息的读和写，leader是从所有节点中随机选择的. 
+replicas：列出了所有的副本节点，不管节点是否在服务中. 
+isr：是正在服务中的节点.
+查看topic
+bin/kafka-topics.sh --list --zookeeper localhost:2181  
+
+增加partitions：
+bin/kafka-topics.sh --zookeeper localhost:2181 --alter --topic topic_test --partitions 10
+说明：只能增加，不能减少。如果原有分散策略是hash的方式，将会受影响。发送端（默认10分钟会刷新本地存储元信息）和消费端都无需重启即可生效。
+
+
+
+
+
